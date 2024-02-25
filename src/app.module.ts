@@ -3,16 +3,17 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './modules';
+import { UserModule, MailModule } from './modules';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env`,
+      envFilePath: '.env',
     }),
     MongooseModule.forRoot(process.env.DB_URL),
     UserModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
