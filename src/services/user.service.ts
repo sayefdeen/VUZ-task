@@ -6,12 +6,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { BcryptService } from './bcrypt.service';
 import { JwtService } from './jwt.service';
+import { MailService } from './mail.service';
 import { User } from 'src/entities';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/dtos';
 
 type ReturnedUser = {
-  user: User;
+  user: { email: string; fullName: string; role: string };
   token: string;
 };
 
@@ -21,6 +22,7 @@ export class UserService {
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly bcryptService: BcryptService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<ReturnedUser> {
@@ -38,10 +40,21 @@ export class UserService {
 
     const createdUser = await user.save();
 
+    this.mailService.sendMail({
+      from: { name: 'Admin', address: 'admin@vuz.com' },
+      recipients: [{ name: user.fullName, address: user.email }],
+      subject: 'Welcome to Task',
+      html: '<p>Hi John, welcome</p>',
+    });
+
     const token = this.jwtService.generateToken(createdUser);
 
     return {
-      user: createdUser,
+      user: {
+        email: createdUser.email,
+        fullName: createdUser.fullName,
+        role: createdUser.role,
+      },
       token,
     };
   }
@@ -64,7 +77,11 @@ export class UserService {
 
     const token = this.jwtService.generateToken(user);
     return {
-      user,
+      user: {
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      },
       token,
     };
   }
