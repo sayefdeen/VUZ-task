@@ -1,20 +1,62 @@
-import { Body, Controller, Post, UsePipes } from '@nestjs/common';
-import { CreateUserValidationPipe } from 'src/Pipes/createUserValidation.pipe';
-import { CreateUserDto, SignInDto } from 'src/dtos';
-import { UserService } from 'src/services/user.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
+import { CreateShipmentDto, ShipmentFeedBack } from 'src/dtos';
+import { AuthenticationInterceptor } from 'src/interceptors';
+import { UserService } from 'src/services';
 
-@Controller('auth')
+interface ExtendedRequest extends Request {
+  user: {
+    ـid: string;
+  };
+}
+
+@Controller('user')
+@UseInterceptors(AuthenticationInterceptor)
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Post('/register')
-  @UsePipes(new CreateUserValidationPipe())
-  async create(@Body() user: CreateUserDto) {
-    return await this.userService.create(user);
+  @Get('/shipment')
+  async allShipments(
+    @Query('limit') limit: number,
+    @Query('page') page: number,
+    @Req() request: ExtendedRequest,
+  ) {
+    const userId = request.user.ـid;
+    const shipments = await this.userService.allShipments(userId, limit, page);
+    return shipments;
   }
 
-  @Post('/signin')
-  async signIn(@Body() body: SignInDto) {
-    return await this.userService.login(body.email, body.password);
+  @Patch('/shipment/:id')
+  async updateShipment(
+    @Param('id') shipmentId: string,
+    @Body() body: Partial<CreateShipmentDto>,
+  ) {
+    const shipments = await this.userService.updateShipment(shipmentId, body);
+    return shipments;
+  }
+
+  @Delete('/shipment/:id')
+  async cancelShipment(@Param('id') shipmentId: string) {
+    const shipments = await this.userService.cancelShipment(shipmentId);
+    return shipments;
+  }
+
+  @Post('/shipment/feedBack/:id')
+  async shipmentFeedBack(
+    @Param('id') shipmentId: string,
+    @Body() body: ShipmentFeedBack,
+  ) {
+    const shipments = await this.userService.updateFeedBack(shipmentId, body);
+    return shipments;
   }
 }
