@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { BcryptService } from './bcrypt.service';
@@ -10,6 +11,7 @@ import { MailService } from './mail.service';
 import { User } from 'src/entities';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/dtos';
+import { UserStatus } from 'src/enums';
 
 type ReturnedUser = {
   user: { email: string; fullName: string; role: string };
@@ -73,6 +75,10 @@ export class UserService {
 
     if (!isValidPassword) {
       throw new BadRequestException('Email or password is incorrect');
+    }
+
+    if (user.status === UserStatus.DISABLED) {
+      throw new UnauthorizedException('Your request not approved Yet');
     }
 
     const token = this.jwtService.generateToken(user);
