@@ -9,5 +9,5 @@ export class ShipmentFeedBack {
 
   @IsString()
   @IsNotEmpty()
-  comment: string;
+  comments: string;
 }

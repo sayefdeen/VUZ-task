@@ -69,7 +69,7 @@ export class AuthService {
     }
 
     if (user.status === UserStatus.DISABLED) {
-      throw new UnauthorizedException('Your request not approved Yet');
+      throw new UnauthorizedException('Your Account is not approved Yet');
     }
 
     const token = this.jwtService.generateToken(user);
