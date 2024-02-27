@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Shipment, User } from 'src/entities';
 import { Model } from 'mongoose';
 import { ProducerTopics, ShipmentStatus, UserStatus } from 'src/enums';
 import { CreateShipmentDto } from 'src/dtos';
 import { KafkaProducerService } from './kafkaProducer.service';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AdminService {
@@ -12,6 +14,7 @@ export class AdminService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Shipment.name) private shipmentModel: Model<Shipment>,
     private readonly kafkaProducer: KafkaProducerService,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {}
 
   async approveUser(email: string, userEmail: string): Promise<void> {
@@ -37,13 +40,18 @@ export class AdminService {
   }
 
   async listShipments(limit: number, page: number): Promise<Shipment[]> {
-    const offset = limit * (page - 1);
-    const shipments = await this.shipmentModel
-      .find({})
-      .limit(limit)
-      .skip(offset);
+    const cacheKey = `shipments-${limit}-${page}`;
+    let shipments = await this.cacheService.get<Shipment[]>(cacheKey);
 
-    return shipments;
+    if (!shipments) {
+      const offset = limit * (page - 1);
+      shipments = await this.shipmentModel.find({}).limit(limit).skip(offset);
+
+      await this.cacheService.set(cacheKey, shipments, 60000);
+      return shipments;
+    } else {
+      return shipments;
+    }
   }
 
   async createShipment(

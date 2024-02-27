@@ -1,4 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Shipment, User } from 'src/entities';
 import { Model, Types } from 'mongoose';
@@ -10,6 +12,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Shipment.name) private shipmentModel: Model<Shipment>,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {}
 
   async allShipments(
@@ -17,25 +20,30 @@ export class UserService {
     limit: number,
     page: number,
   ): Promise<Shipment[]> {
-    const offset = limit * page;
+    const cacheKey = `user-shipments-${limit}-${page}`;
+    const userShipments = await this.cacheService.get<Shipment[]>(cacheKey);
+    if (!userShipments) {
+      const offset = limit * page;
 
-    const pipeline = [
-      { $match: { _id: new Types.ObjectId(userId) } },
-      {
-        $lookup: {
-          from: 'shipments',
-          localField: 'shipments',
-          foreignField: '_id',
-          as: 'shipments',
+      const pipeline = [
+        { $match: { _id: new Types.ObjectId(userId) } },
+        {
+          $lookup: {
+            from: 'shipments',
+            localField: 'shipments',
+            foreignField: '_id',
+            as: 'shipments',
+          },
         },
-      },
-      { $unwind: '$shipments' },
-      { $skip: offset },
-      { $limit: limit },
-    ];
+        { $unwind: '$shipments' },
+        { $skip: offset },
+        { $limit: limit },
+      ];
 
-    const user = await this.userModel.aggregate(pipeline).exec();
-    return user.length > 0 ? user[0].shipments : [];
+      const user = await this.userModel.aggregate(pipeline).exec();
+      return user.length > 0 ? user[0].shipments : [];
+    }
+    return userShipments;
   }
 
   async updateShipment(

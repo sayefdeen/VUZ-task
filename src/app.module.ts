@@ -11,6 +11,8 @@ import {
   KafkaModule,
 } from './modules';
 import { APP_PIPE } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -24,6 +26,17 @@ import { APP_PIPE } from '@nestjs/core';
     MailModule,
     AdminModule,
     UserModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: {
+            host: 'localhost',
+            port: 6379,
+          },
+        }),
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [

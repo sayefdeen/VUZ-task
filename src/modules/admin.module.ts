@@ -4,6 +4,7 @@ import { AdminController } from 'src/controllers';
 import { UserSchema, User, Shipment, ShipmentSchema } from 'src/entities';
 import { AdminService, JwtService } from 'src/services';
 import { ShipmentDeleteConsumer, ShipmentUpdateConsumer } from 'src/consumers';
+import { CacheModule } from '@nestjs/cache-manager';
 import { KafkaModule } from './kafka.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { KafkaModule } from './kafka.module';
       { name: Shipment.name, schema: ShipmentSchema },
     ]),
     KafkaModule,
+    CacheModule.register(),
   ],
   providers: [
     ShipmentDeleteConsumer,

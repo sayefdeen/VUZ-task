@@ -34,7 +34,6 @@ export class AdminController {
     @Req() request: ExtendedRequest,
   ) {
     const userEmail = request.user.email;
-    console.log('this is the user', userEmail);
     this.adminService.approveUser(email, userEmail);
   }
 
