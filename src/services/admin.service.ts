@@ -12,14 +12,22 @@ export class AdminService {
     @InjectModel(Shipment.name) private shipmentModel: Model<Shipment>,
   ) {}
 
-  async approveUser(email: string): Promise<void> {
+  async approveUser(email: string, userEmail: string): Promise<void> {
+    if (email === userEmail) {
+      throw new BadRequestException("You can't approve yourself");
+    }
+
     await this.userModel.findOneAndUpdate(
       { email },
       { $set: { status: UserStatus.ENABLED } },
     );
   }
 
-  async rejectUser(email: string): Promise<void> {
+  async rejectUser(email: string, userEmail: string): Promise<void> {
+    if (email === userEmail) {
+      throw new BadRequestException("You can't Reject yourself");
+    }
+
     await this.userModel.findOneAndUpdate(
       { email },
       { $set: { status: UserStatus.DISABLED } },
@@ -27,7 +35,7 @@ export class AdminService {
   }
 
   async listShipments(limit: number, page: number): Promise<Shipment[]> {
-    const offset = limit * page;
+    const offset = limit * (page - 1);
     const shipments = await this.shipmentModel
       .find({})
       .limit(limit)
@@ -37,13 +45,31 @@ export class AdminService {
   }
 
   async createShipment(
-    CreateShipmentDto: CreateShipmentDto,
+    createShipmentDto: CreateShipmentDto,
+    userEmail: string,
   ): Promise<Shipment> {
     const shipment = await this.shipmentModel.create({
-      ...CreateShipmentDto,
+      origin: createShipmentDto.origin,
+      destination: createShipmentDto.destination,
+      deliveryPreferences: {
+        deliveryTimeWindows: [
+          `${createShipmentDto.deliveryTimeStart}-${createShipmentDto.deliveryTimeEnd}`,
+        ],
+        packagingInstructions: createShipmentDto.packagingInstructions,
+        deliveryVehicleTypePreferences: createShipmentDto.vehicleType,
+      },
+      history: {
+        status: ShipmentStatus.SCHEDULED,
+        createdAt: new Date(),
+      },
     });
 
     const createdShipment = await shipment.save();
+
+    await this.userModel.findOneAndUpdate(
+      { email: userEmail },
+      { $push: { shipments: createdShipment._id } },
+    );
     return createdShipment;
   }
 
@@ -67,8 +93,21 @@ export class AdminService {
   }
 
   async deleteShipment(shipmentId: string): Promise<void> {
+    const shipment = await this.shipmentModel.findById(shipmentId);
+    if (
+      shipment.status === ShipmentStatus.DELETED ||
+      shipment.status === ShipmentStatus.IN_TRANSIT
+    ) {
+      throw new BadRequestException("Can't delete this shipping");
+    }
     await this.shipmentModel.findByIdAndUpdate(shipmentId, {
       $set: { status: ShipmentStatus.DELETED },
+      $push: {
+        history: {
+          status: ShipmentStatus.DELETED,
+          Date: new Date(),
+        },
+      },
     });
   }
 }

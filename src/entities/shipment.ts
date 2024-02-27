@@ -1,51 +1,56 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 import { DeliveryVehicleType, ShipmentStatus } from 'src/enums';
 
-const DeliveryPreferencesSchema = new Schema({
-  deliveryTimeWindows: [String],
-  packagingInstructions: String,
-  deliveryVehicleTypePreferences: {
-    type: String,
-    enum: Object.values(DeliveryVehicleType),
-  },
-});
-
-const ShipmentFeedbackSchema = new Schema({
-  rating: {
-    type: Number,
-    min: 1,
-    max: 5,
-  },
-  comments: String,
-});
-
-const ShipmentHistory = new Schema({
-  status: {
-    type: String,
-    enum: Object.values(ShipmentStatus),
-    required: true,
-  },
-  createdAt: { type: Date, default: Date.now },
-});
-
+@Schema()
 export class Shipment extends Document {
-  @Prop({ required: true, type: String })
+  @Prop({ required: true })
   origin: string;
-  @Prop({ required: true, type: String })
+
+  @Prop({ required: true })
   destination: string;
-  @Prop({ required: true, type: DeliveryPreferencesSchema })
-  deliveryPreferences: typeof DeliveryPreferencesSchema;
+
+  @Prop({
+    _id: false,
+    required: true,
+    type: {
+      deliveryTimeWindows: [String],
+      packagingInstructions: String,
+      deliveryVehicleTypePreferences: {
+        type: String,
+        enum: Object.values(DeliveryVehicleType),
+      },
+    },
+  })
+  deliveryPreferences: {
+    deliveryTimeWindows: string[];
+    packagingInstructions: string;
+    deliveryVehicleTypePreferences: DeliveryVehicleType;
+  };
+
   @Prop({
     enum: ShipmentStatus,
     default: ShipmentStatus.SCHEDULED,
     required: true,
   })
   status: ShipmentStatus;
-  @Prop({ required: false, type: ShipmentFeedbackSchema })
-  feedback?: typeof ShipmentFeedbackSchema;
-  @Prop({ required: false, type: ShipmentHistory })
-  history: { status: ShipmentStatus; createdAt: Date }[];
+
+  @Prop({
+    type: {
+      rating: Number,
+      comments: Number,
+    },
+  })
+  feedback: {
+    rating: number;
+    comments: string;
+  };
+
+  @Prop()
+  history: {
+    status: ShipmentStatus;
+    createdAt: Date;
+  }[];
 }
 
 export const ShipmentSchema = SchemaFactory.createForClass(Shipment);

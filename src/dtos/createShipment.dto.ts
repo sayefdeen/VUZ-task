@@ -1,11 +1,9 @@
-import { IsEnum, IsNotEmpty, IsString, Max, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { DeliveryVehicleType } from 'src/enums';
 
 export class CreateShipmentDto {
   @IsString()
   @IsNotEmpty()
-  @Min(1)
-  @Max(5)
   origin: string;
 
   @IsString()
@@ -23,4 +21,8 @@ export class CreateShipmentDto {
   @IsEnum(DeliveryVehicleType)
   @IsNotEmpty()
   vehicleType: DeliveryVehicleType;
+
+  @IsString()
+  @IsNotEmpty()
+  packagingInstructions: string;
 }
