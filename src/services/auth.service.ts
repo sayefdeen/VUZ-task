@@ -38,10 +38,10 @@ export class AuthService {
     const createdUser = await user.save();
 
     this.mailService.sendMail({
-      from: { name: 'Admin', address: 'admin@vuz.com' },
-      recipients: [{ name: user.fullName, address: user.email }],
-      subject: 'Welcome to Task',
-      html: '<p>Hi John, welcome</p>',
+      from: 'sayefdeen.alrawad@gmail.com',
+      to: createdUser.email,
+      subject: `Welcome to our Application ${createdUser.fullName}`,
+      html: `<p>Hi ${createdUser.fullName}, welcome to our application</p>`,
     });
 
     const token = this.jwtService.generateToken(createdUser);
