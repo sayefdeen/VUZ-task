@@ -4,3 +4,5 @@ export { JwtService } from './jwt.service';
 export { AuthService } from './auth.service';
 export { MailService } from './mail.service';
 export { UserService } from './user.service';
+export { KafkaConsumerService } from './kafkaConsumer.service';
+export { KafkaProducerService } from './kafkaProducer.service';
