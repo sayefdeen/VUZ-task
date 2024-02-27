@@ -3,7 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule, MailModule, AdminModule, UserModule } from './modules';
+import {
+  AuthModule,
+  MailModule,
+  AdminModule,
+  UserModule,
+  KafkaModule,
+} from './modules';
 import { APP_PIPE } from '@nestjs/core';
 
 @Module({
@@ -13,6 +19,7 @@ import { APP_PIPE } from '@nestjs/core';
       envFilePath: '.env',
     }),
     MongooseModule.forRoot(process.env.DB_URL),
+    KafkaModule,
     AuthModule,
     MailModule,
     AdminModule,

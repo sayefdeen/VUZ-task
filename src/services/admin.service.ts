@@ -2,14 +2,16 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Shipment, User } from 'src/entities';
 import { Model } from 'mongoose';
-import { ShipmentStatus, UserStatus } from 'src/enums';
+import { ProducerTopics, ShipmentStatus, UserStatus } from 'src/enums';
 import { CreateShipmentDto } from 'src/dtos';
+import { KafkaProducerService } from './kafkaProducer.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Shipment.name) private shipmentModel: Model<Shipment>,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
   async approveUser(email: string, userEmail: string): Promise<void> {
@@ -89,6 +91,12 @@ export class AdminService {
         new: true,
       },
     );
+
+    this.kafkaProducer.produce({
+      topic: ProducerTopics.SHIPMENT_TRANSIT,
+      messages: [{ value: 'Your Shipment status is updated to in transit' }],
+    });
+
     return updatedShipment;
   }
 
@@ -108,6 +116,11 @@ export class AdminService {
           Date: new Date(),
         },
       },
+    });
+
+    this.kafkaProducer.produce({
+      topic: ProducerTopics.SHIPMENT_DELETED,
+      messages: [{ value: 'Your Shipment status is deleted bu Admin' }],
     });
   }
 }
