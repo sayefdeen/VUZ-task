@@ -14,16 +14,20 @@ export class Shipment extends Document {
     _id: false,
     required: true,
     type: {
-      deliveryTimeWindows: [String],
+      deliveryTimeWindows: {
+        from: String,
+        to: String,
+      },
       packagingInstructions: String,
       deliveryVehicleTypePreferences: {
         type: String,
         enum: Object.values(DeliveryVehicleType),
+        default: DeliveryVehicleType.STANDARD,
       },
     },
   })
   deliveryPreferences: {
-    deliveryTimeWindows: string[];
+    deliveryTimeWindows: { from: string; to: string };
     packagingInstructions: string;
     deliveryVehicleTypePreferences: DeliveryVehicleType;
   };

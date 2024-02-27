@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Shipment, User } from 'src/entities';
 import { Model } from 'mongoose';
 import { ProducerTopics, ShipmentStatus, UserStatus } from 'src/enums';
-import { CreateShipmentDto } from 'src/dtos';
+import { CreateShipmentDto, UpdateShipmentDto } from 'src/dtos';
 import { KafkaProducerService } from './kafkaProducer.service';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -59,15 +59,7 @@ export class AdminService {
     userEmail: string,
   ): Promise<Shipment> {
     const shipment = await this.shipmentModel.create({
-      origin: createShipmentDto.origin,
-      destination: createShipmentDto.destination,
-      deliveryPreferences: {
-        deliveryTimeWindows: [
-          `${createShipmentDto.deliveryTimeStart}-${createShipmentDto.deliveryTimeEnd}`,
-        ],
-        packagingInstructions: createShipmentDto.packagingInstructions,
-        deliveryVehicleTypePreferences: createShipmentDto.vehicleType,
-      },
+      ...createShipmentDto,
       history: {
         status: ShipmentStatus.SCHEDULED,
         createdAt: new Date(),
@@ -80,31 +72,50 @@ export class AdminService {
       { email: userEmail },
       { $push: { shipments: createdShipment._id } },
     );
+    await this.cacheService.reset();
     return createdShipment;
   }
 
   async updateShipment(
     shipmentId: string,
-    updateOptions: Partial<CreateShipmentDto>,
+    updateOptions: Partial<UpdateShipmentDto>,
   ): Promise<Shipment> {
     const shipment = await this.shipmentModel.findById(shipmentId);
     if (shipment.status !== ShipmentStatus.SCHEDULED) {
-      throw new BadRequestException("Can't update this shipment");
+      throw new BadRequestException(
+        `Can't update Shipment because it is ${shipment.status}`,
+      );
+    }
+    const updateDocument: any = { ...updateOptions };
+
+    if (updateOptions.status) {
+      updateDocument.$push = {
+        history: {
+          status: updateOptions.status,
+          date: new Date(),
+        },
+      };
     }
 
     const updatedShipment = await this.shipmentModel.findByIdAndUpdate(
       shipmentId,
-      updateOptions,
+      updateDocument,
       {
         new: true,
       },
     );
 
-    this.kafkaProducer.produce({
-      topic: ProducerTopics.SHIPMENT_TRANSIT,
-      messages: [{ value: 'Your Shipment status is updated to in transit' }],
-    });
-
+    if (updateOptions.status === ShipmentStatus.IN_TRANSIT) {
+      this.kafkaProducer.produce({
+        topic: ProducerTopics.SHIPMENT_TRANSIT,
+        messages: [
+          {
+            value: `Your Shipment status is updated to ${updateOptions.status}`,
+          },
+        ],
+      });
+    }
+    await this.cacheService.reset();
     return updatedShipment;
   }
 
@@ -114,7 +125,9 @@ export class AdminService {
       shipment.status === ShipmentStatus.DELETED ||
       shipment.status === ShipmentStatus.IN_TRANSIT
     ) {
-      throw new BadRequestException("Can't delete this shipping");
+      throw new BadRequestException(
+        `Can't delete this shipping because it is ${shipment.status}`,
+      );
     }
     await this.shipmentModel.findByIdAndUpdate(shipmentId, {
       $set: { status: ShipmentStatus.DELETED },
@@ -126,9 +139,11 @@ export class AdminService {
       },
     });
 
+    await this.cacheService.reset();
+
     this.kafkaProducer.produce({
       topic: ProducerTopics.SHIPMENT_DELETED,
-      messages: [{ value: 'Your Shipment status is deleted bu Admin' }],
+      messages: [{ value: 'Your Shipment is deleted by Admin' }],
     });
   }
 }

@@ -7,14 +7,14 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { DeliveryVehicleType } from 'src/enums';
+import { DeliveryVehicleType, ShipmentStatus } from 'src/enums';
 
 class DeliveryTimeWindowsDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   from: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   to: string;
 }
@@ -35,17 +35,22 @@ class DeliveryPreferencesDto {
   deliveryVehicleTypePreferences: DeliveryVehicleType;
 }
 
-export class CreateShipmentDto {
+export class UpdateShipmentDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   origin: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   destination: string;
 
   @IsObject()
+  @IsOptional()
   @Type(() => DeliveryPreferencesDto)
   @ValidateNested()
   deliveryPreferences: DeliveryPreferencesDto;
+
+  @IsEnum(ShipmentStatus)
+  @IsOptional()
+  status: ShipmentStatus;
 }

@@ -11,7 +11,7 @@ import {
   Req,
   UseInterceptors,
 } from '@nestjs/common';
-import { CreateShipmentDto } from 'src/dtos';
+import { CreateShipmentDto, UpdateShipmentDto } from 'src/dtos';
 import { AdminInterceptor, AuthenticationInterceptor } from 'src/interceptors';
 import { AdminService } from 'src/services';
 
@@ -69,7 +69,7 @@ export class AdminController {
   @Patch('/shipment/:id')
   async updateShipment(
     @Param('id') shipmentId: string,
-    @Body() body: Partial<CreateShipmentDto>,
+    @Body() body: Partial<UpdateShipmentDto>,
   ) {
     const shipment = await this.adminService.updateShipment(shipmentId, body);
     return shipment;

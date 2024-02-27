@@ -126,15 +126,7 @@ export class UserService {
     userEmail: string,
   ): Promise<Shipment> {
     const shipment = await this.shipmentModel.create({
-      origin: createShipmentDto.origin,
-      destination: createShipmentDto.destination,
-      deliveryPreferences: {
-        deliveryTimeWindows: [
-          `${createShipmentDto.deliveryTimeStart}-${createShipmentDto.deliveryTimeEnd}`,
-        ],
-        packagingInstructions: createShipmentDto.packagingInstructions,
-        deliveryVehicleTypePreferences: createShipmentDto.vehicleType,
-      },
+      ...createShipmentDto,
       history: {
         status: ShipmentStatus.SCHEDULED,
         createdAt: new Date(),
