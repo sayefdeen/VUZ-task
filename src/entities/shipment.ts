@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { DeliveryVehicleType, ShipmentStatus } from 'src/enums';
 
-@Schema()
+@Schema({ versionKey: false })
 export class Shipment extends Document {
   @Prop({ required: true })
   origin: string;
@@ -36,9 +36,10 @@ export class Shipment extends Document {
   status: ShipmentStatus;
 
   @Prop({
+    _id: false,
     type: {
       rating: Number,
-      comments: Number,
+      comments: String,
     },
   })
   feedback: {

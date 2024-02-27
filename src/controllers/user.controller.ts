@@ -16,7 +16,7 @@ import { UserService } from 'src/services';
 
 interface ExtendedRequest extends Request {
   user: {
-    ـid: string;
+    email: string;
   };
 }
 
@@ -31,9 +31,19 @@ export class UserController {
     @Query('page') page: number,
     @Req() request: ExtendedRequest,
   ) {
-    const userId = request.user.ـid;
-    const shipments = await this.userService.allShipments(userId, limit, page);
+    const email = request.user.email;
+    const shipments = await this.userService.allShipments(email, limit, page);
     return shipments;
+  }
+
+  @Post('/shipment')
+  async createShipment(
+    @Body() body: CreateShipmentDto,
+    @Req() request: ExtendedRequest,
+  ) {
+    const userEmail = request.user.email;
+    const shipment = await this.userService.createShipment(body, userEmail);
+    return shipment;
   }
 
   @Patch('/shipment/:id')

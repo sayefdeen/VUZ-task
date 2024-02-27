@@ -10,7 +10,7 @@ export class JwtService {
   generateToken(user: Partial<User>): string {
     const payload = { email: user.email, userRole: user.role };
     const secretKey = this.configService.get<string>('JWT_SECRET');
-    return jwt.sign(payload, secretKey, { expiresIn: '1h' });
+    return jwt.sign(payload, secretKey, { expiresIn: '24h' });
   }
 
   verifyToken(token: string): any {
@@ -18,7 +18,7 @@ export class JwtService {
     try {
       return jwt.verify(token, secretKey);
     } catch (error) {
-      throw new InternalServerErrorException('Error in jwt generate');
+      throw new InternalServerErrorException('Token not verified');
     }
   }
 }
