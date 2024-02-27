@@ -3,16 +3,23 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
+  HttpCode,
   Param,
   Patch,
   Post,
   Query,
+  Req,
   UseInterceptors,
 } from '@nestjs/common';
 import { CreateShipmentDto } from 'src/dtos';
 import { AdminInterceptor, AuthenticationInterceptor } from 'src/interceptors';
 import { AdminService } from 'src/services';
+
+interface ExtendedRequest extends Request {
+  user: {
+    email: string;
+  };
+}
 
 @Controller('admin')
 @UseInterceptors(AuthenticationInterceptor)
@@ -20,16 +27,25 @@ import { AdminService } from 'src/services';
 export class AdminController {
   constructor(private adminService: AdminService) {}
 
-  @Patch('/approve/:email')
-  async approveUser(@Param('email') email: string) {
-    this.adminService.approveUser(email);
-    return HttpStatus.NO_CONTENT;
+  @Patch('/approve')
+  @HttpCode(204)
+  async approveUser(
+    @Query('email') email: string,
+    @Req() request: ExtendedRequest,
+  ) {
+    const userEmail = request.user.email;
+    console.log('this is the user', userEmail);
+    this.adminService.approveUser(email, userEmail);
   }
 
-  @Patch('/disable/:email')
-  async rejectUser(@Param('email') email: string) {
-    this.adminService.rejectUser(email);
-    return HttpStatus.NO_CONTENT;
+  @Patch('/disable')
+  @HttpCode(204)
+  async rejectUser(
+    @Query('email') email: string,
+    @Req() request: ExtendedRequest,
+  ) {
+    const userEmail = request.user.email;
+    this.adminService.rejectUser(email, userEmail);
   }
 
   @Get('/shipment')
@@ -42,8 +58,12 @@ export class AdminController {
   }
 
   @Post('/shipment')
-  async createShipment(@Body() body: CreateShipmentDto) {
-    const shipment = await this.adminService.createShipment(body);
+  async createShipment(
+    @Body() body: CreateShipmentDto,
+    @Req() request: ExtendedRequest,
+  ) {
+    const userEmail = request.user.email;
+    const shipment = await this.adminService.createShipment(body, userEmail);
     return shipment;
   }
 
@@ -57,8 +77,8 @@ export class AdminController {
   }
 
   @Delete('/shipment/:id')
+  @HttpCode(204)
   async deleteShipment(@Param('id') shipmentId: string) {
     this.adminService.deleteShipment(shipmentId);
-    return HttpStatus.NO_CONTENT;
   }
 }

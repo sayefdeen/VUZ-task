@@ -10,13 +10,8 @@ import { JwtService } from './jwt.service';
 import { MailService } from './mail.service';
 import { User } from 'src/entities';
 import { Model } from 'mongoose';
-import { CreateUserDto } from 'src/dtos';
+import { CreateUserDto, ReturnedUserDto } from 'src/dtos';
 import { UserStatus } from 'src/enums';
-
-type ReturnedUser = {
-  user: { email: string; fullName: string; role: string };
-  token: string;
-};
 
 @Injectable()
 export class AuthService {
@@ -27,7 +22,7 @@ export class AuthService {
     private readonly mailService: MailService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<ReturnedUser> {
+  async create(createUserDto: CreateUserDto): Promise<ReturnedUserDto> {
     const { email, password } = createUserDto;
     const hashedPassword = await this.bcryptService.hashPassword(password);
     const checkUser = await this.userModel.findOne({ email });
@@ -52,16 +47,12 @@ export class AuthService {
     const token = this.jwtService.generateToken(createdUser);
 
     return {
-      user: {
-        email: createdUser.email,
-        fullName: createdUser.fullName,
-        role: createdUser.role,
-      },
+      user: createdUser,
       token,
     };
   }
 
-  async login(email: string, password: string): Promise<ReturnedUser> {
+  async login(email: string, password: string): Promise<ReturnedUserDto> {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
@@ -82,12 +73,9 @@ export class AuthService {
     }
 
     const token = this.jwtService.generateToken(user);
+
     return {
-      user: {
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-      },
+      user,
       token,
     };
   }
