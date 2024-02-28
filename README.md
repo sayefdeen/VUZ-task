@@ -118,6 +118,15 @@ project/
 
 Feel free to explore the directories further to understand more about each component of the project.
 
+# Admin
+
+```
+{
+    "email": "sayefdeen.alrawad1@gmail.com",
+    "password": "12345"
+}
+```
+
 # Documentations
 
 ## Admin Controller API Documentation
