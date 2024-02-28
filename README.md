@@ -117,3 +117,185 @@ project/
 ```
 
 Feel free to explore the directories further to understand more about each component of the project.
+
+# Documentations
+
+## Admin Controller API Documentation
+
+### PATCH /admin/approve
+
+- **Method:** PATCH
+- **Description:** Approve a user.
+- **Accepts:**
+  - Query Parameter:
+    - `email`: String (Email of the user to approve)
+- **Returns:** No content (HTTP 204)
+
+### PATCH /admin/disable
+
+- **Method:** PATCH
+- **Description:** Disable a user.
+- **Accepts:**
+  - Query Parameter:
+    - `email`: String (Email of the user to disable)
+- **Returns:** No content (HTTP 204)
+
+### GET /admin/shipment
+
+- **Method:** GET
+- **Description:** Get all shipments.
+- **Accepts:**
+  - Query Parameters (optional):
+    - `limit`: Number (Number of shipments to retrieve)
+    - `page`: Number (Page number)
+- **Returns:** JSON array of shipment objects
+
+### POST /admin/shipment
+
+- **Method:** POST
+- **Description:** Create a new shipment.
+- **Accepts:**
+  - Body:
+    - `origin`: String (Origin of the shipment)
+    - `destination`: String (Destination of the shipment)
+    - `deliveryPreferences`: Object (Delivery preferences)
+      - `deliveryTimeWindows`: Object (Delivery time windows)
+        - `from`: String (Start time of delivery window)
+        - `to`: String (End time of delivery window)
+      - `packagingInstructions`: String (Optional packaging instructions)
+      - `deliveryVehicleTypePreferences`: Enum (Delivery vehicle type preferences)
+- **Returns:** JSON object of the created shipment
+
+### PATCH /admin/shipment/:id
+
+- **Method:** PATCH
+- **Description:** Update an existing shipment.
+- **Accepts:**
+  - Path Parameter:
+    - `id`: String (ID of the shipment to update)
+  - Body:
+    - `origin`: String (Optional updated origin of the shipment)
+    - `destination`: String (Optional updated destination of the shipment)
+    - `deliveryPreferences`: Object (Optional updated delivery preferences)
+      - `deliveryTimeWindows`: Object (Optional updated delivery time windows)
+        - `from`: String (Optional updated start time of delivery window)
+        - `to`: String (Optional updated end time of delivery window)
+      - `packagingInstructions`: String (Optional updated packaging instructions)
+      - `deliveryVehicleTypePreferences`: Enum (Optional updated delivery vehicle type preferences)
+    - `status`: Enum (Optional updated status of the shipment)
+- **Returns:** JSON object of the updated shipment
+
+### DELETE /admin/shipment/:id
+
+- **Method:** DELETE
+- **Description:** Delete a shipment.
+- **Accepts:**
+  - Path Parameter:
+    - `id`: String (ID of the shipment to delete)
+- **Returns:** No content (HTTP 204)
+
+
+## Auth Controller API Documentation
+
+### POST /auth/register
+
+- **Method:** POST
+- **Description:** Register a new user.
+- **Accepts:**
+  - Body:
+    - `user`: Object (CreateUserDto)
+      - `email`: String (User's email)
+      - `password`: String (User's password)
+      - `fullName`: String (User's full name)
+- **Returns:** JSON object of the created user and authentication token (ReturnedUserDto)
+  - `user`: Object (UserDto)
+    - `email`: String (User's email)
+    - `fullName`: String (User's full name)
+    - `role`: Enum (User's role)
+  - `token`: String (User's authentication token)
+
+### POST /auth/signin
+
+- **Method:** POST
+- **Description:** Sign in a user.
+- **Accepts:**
+  - Body:
+    - `body`: Object (SignInDto)
+      - `email`: String (User's email)
+      - `password`: String (User's password)
+- **Returns:** JSON object containing user details and authentication token (ReturnedUserDto)
+  - `user`: Object (UserDto)
+    - `email`: String (User's email)
+    - `fullName`: String (User's full name)
+    - `role`: Enum (User's role)
+  - `token`: String (User's authentication token)
+
+## User Controller API Documentation
+
+### GET /user/shipment
+
+- **Method:** GET
+- **Description:** Get all shipments for the user.
+- **Accepts:**
+  - Query Parameters (optional):
+    - `limit`: Number (Number of shipments to retrieve)
+    - `page`: Number (Page number)
+- **Returns:** JSON array of shipment objects
+
+### POST /user/shipment
+
+- **Method:** POST
+- **Description:** Create a new shipment for the user.
+- **Accepts:**
+  - Body:
+    - `body`: Object (CreateShipmentDto)
+      - `origin`: String (Shipment's origin)
+      - `destination`: String (Shipment's destination)
+      - `deliveryPreferences`: Object (DeliveryPreferencesDto)
+        - `deliveryTimeWindows`: Object (DeliveryTimeWindowsDto)
+          - `from`: String (Delivery window start time)
+          - `to`: String (Delivery window end time)
+        - `packagingInstructions`: String (Packaging instructions)
+        - `deliveryVehicleTypePreferences`: Enum (Delivery vehicle type preferences)
+- **Returns:** JSON object of the created shipment
+
+### PATCH /user/shipment/:id
+
+- **Method:** PATCH
+- **Description:** Update an existing shipment for the user.
+- **Accepts:**
+  - Path Parameter:
+    - `id`: String (ID of the shipment to update)
+  - Body:
+    - `body`: Partial object (CreateShipmentDto)
+      - `origin`: String (Shipment's origin)
+      - `destination`: String (Shipment's destination)
+      - `deliveryPreferences`: Object (DeliveryPreferencesDto)
+        - `deliveryTimeWindows`: Object (DeliveryTimeWindowsDto)
+          - `from`: String (Delivery window start time)
+          - `to`: String (Delivery window end time)
+        - `packagingInstructions`: String (Packaging instructions)
+        - `deliveryVehicleTypePreferences`: Enum (Delivery vehicle type preferences)
+- **Returns:** JSON object of the updated shipment
+
+### DELETE /user/shipment/:id
+
+- **Method:** DELETE
+- **Description:** Cancel a shipment for the user.
+- **Accepts:**
+  - Path Parameter:
+    - `id`: String (ID of the shipment to cancel)
+- **Returns:** JSON object of the canceled shipment
+
+### POST /user/shipment/feedBack/:id
+
+- **Method:** POST
+- **Description:** Provide feedback for a shipment.
+- **Accepts:**
+  - Path Parameter:
+    - `id`: String (ID of the shipment to provide feedback for)
+  - Body:
+    - `body`: Object (ShipmentFeedBack)
+      - `rating`: Number (Rating for the shipment, between 1 and 5)
+      - `comments`: String (Comments for the shipment)
+- **Returns:** JSON object of the updated shipment
