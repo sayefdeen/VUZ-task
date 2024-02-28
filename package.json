@@ -9,7 +9,7 @@
     "node": "18.16.0"
   },
   "scripts": {
-    "build": "docker-compose docker-compose.yaml up --build",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
