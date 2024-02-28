@@ -1,4 +1,4 @@
-# Project ReadMe
+# VUZ Task
 
 Welcome to our project! Below you'll find instructions on how to get started with the project, along with an overview of its structure.
 
