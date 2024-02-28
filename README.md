@@ -28,6 +28,7 @@ To get started with the project, follow these steps:
 
 5. **Access the Application**:
     - Once the API is started, you can use it at `http://localhost:3000` in postman.
+    - Install this [POSTMAN](https://drive.google.com/drive/folders/1pIRNKH7OktkWc7-Qj0y-tUoTdkF3GrO9?usp=sharing) json files
 
 ## Project Structure
 
